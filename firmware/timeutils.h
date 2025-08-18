@@ -1,38 +1,68 @@
-#pragma once
-#include <WiFi.h>
-#include "time.h"
-#include "credentials.h"
+#ifndef TIMEUTILS_H
+#define TIMEUTILS_H
 
-const char* ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = 19800; // This is for IST (UTC +5:30)
-const int daylightOffset_sec = 0;
+#include <WiFi.h>
+#include <time.h>
+#include "config.h"
+
 bool timeSynced = false;
 
 void setupTime()
 {
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    while (WiFi.status() != WL_CONNECTED)
+    configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC, NTP_SERVER);
+    
+    Serial.print("Syncing time");
+    for (int i = 0; i < TIME_SYNC_RETRIES; i++)
     {
-        delay(500);
+        time_t now = time(nullptr);
+        struct tm timeinfo;
+        if (getLocalTime(&timeinfo, 1000))
+        {
+            timeSynced = true;
+            Serial.printf("\nTime synced: %02d:%02d:%02d %02d/%02d/%04d",
+                         timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec,
+                         timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900);
+            return;
+        }
         Serial.print(".");
+        delay(TIME_SYNC_DELAY);
     }
-    Serial.println("WiFi connected");
-
-    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-    timeSynced = true;
+    Serial.println("\nFailed to sync time - Using relative time");
 }
 
 String getTime()
 {
-    if (timeSynced)
+    if (!timeSynced)
     {
-        struct tm timeinfo;
-        if (getLocalTime(&timeinfo))
-        {
-            char buffer[25];
-            strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
-            return String(buffer) + " IST";
-        }
+        static unsigned long startMillis = millis();
+        unsigned long elapsed = (millis() - startMillis) / 1000;
+        return "[U:" + String(elapsed) + "s]";
     }
-    return String(millis());
+    
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo, 100))
+    {
+        return "[Time Error]";
+    }
+    
+    char buf[20];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    return String(buf);
 }
+
+String getTodayDate()
+{
+    if (!timeSynced) return "1970-01-01";
+    
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo, 100))
+    {
+        return "1970-01-01";
+    }
+    
+    char buf[11];
+    strftime(buf, sizeof(buf), "%Y-%m-%d", &timeinfo);
+    return String(buf);
+}
+
+#endif
