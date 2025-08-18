@@ -4,6 +4,7 @@
 #include "sdlogger.h"
 #include "webui.h"
 #include "display.h"
+#include "neopixel.h"
 
 volatile unsigned long doorOpenTime = 0;
 volatile unsigned long lastDuration = 0;
@@ -19,37 +20,57 @@ void setup()
     Serial.println("\n=== Door Logie ===");
 
     pinMode(REED_PIN, INPUT_PULLUP);
-    pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, LOW);
 
+    setupNeoPixel();
+    setStatusColor(COLOR_BOOT);
+
+    // OLED
     Wire.begin(OLED_SDA, OLED_SCL);
     setupDisplay();
 
+    // WiFi
+    setStatusColor(COLOR_WIFI_CONN);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     Serial.print("Connecting to WiFi");
     unsigned long wifiStart = millis();
-    while (WiFi.status() != WL_CONNECTED && millis() - wifiStart < WIFI_TIMEOUT) 
+    while (WiFi.status() != WL_CONNECTED && millis() - wifiStart < WIFI_TIMEOUT)
     {
-        delay(500);
+        pulseColor(COLOR_WIFI_CONN);
         Serial.print(".");
     }
 
     if (WiFi.status() == WL_CONNECTED)
     {
+        setStatusColor(COLOR_WIFI_OK);
         Serial.println("\nWiFi connected! IP: " + WiFi.localIP().toString());
+
+        setStatusColor(COLOR_TIME_SYNC);
         setupTime();
+        if (timeSynced)
+        {
+            setStatusColor(COLOR_WIFI_OK);
+        }
+        else
+        {
+            setStatusColor(COLOR_TIME_FAIL);
+            delay(2000);
+        }
     }
     else
     {
+        setStatusColor(COLOR_ERROR);
         Serial.println("\nWiFi connection failed");
+        delay(2000);
     }
 
+    // SD
     if (!initSD())
     {
+        setStatusColor(COLOR_SD_FAIL);
         Serial.println("SD card initialization failed!");
         while (1)
         {
-            delay(1000);
+            pulseColor(COLOR_SD_FAIL);
         }
     }
 
@@ -58,6 +79,8 @@ void setup()
     lastRawState = digitalRead(REED_PIN);
     currentDoorState = lastRawState == HIGH ? "OPEN" : "CLOSED";
     Serial.println("System ready. Initial state: " + currentDoorState);
+
+    setStatusColor(lastRawState == HIGH ? COLOR_DOOR_OPEN : COLOR_DOOR_CLS);
 
     updateDisplay();
 }
@@ -81,7 +104,7 @@ void loop()
         if (currentState != lastStableState)
         {
             lastStableState = currentState;
-            digitalWrite(LED_PIN, currentState ? HIGH : LOW);
+            setStatusColor(currentState ? COLOR_DOOR_OPEN : COLOR_DOOR_CLS);
             currentDoorState = currentState ? "OPEN" : "CLOSED";
 
             if (currentState)
