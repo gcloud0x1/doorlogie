@@ -52,12 +52,12 @@ String getTime()
 
 String getTodayDate()
 {
-    if (!timeSynced) return "1970-01-01";
+    if (!timeSynced) return "2000-01-01";
     
     struct tm timeinfo;
     if (!getLocalTime(&timeinfo, 100))
     {
-        return "1970-01-01";
+        return "2000-01-01";
     }
     
     char buf[11];

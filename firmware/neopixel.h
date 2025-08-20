@@ -6,9 +6,9 @@
 
 Adafruit_NeoPixel pixels(NEOPIXEL_COUNT, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
-// Colors
+// Colors (I feel it's better to use primary colours)
 #define COLOR_OFF pixels.Color(0, 0, 0)
-// White for booting
+// White for booting (this will only be visible for less than a second)
 #define COLOR_BOOT pixels.Color(255, 255, 255)
 // Blue for WiFi connecting
 #define COLOR_WIFI_CONN pixels.Color(0, 0, 255)

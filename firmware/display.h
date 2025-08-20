@@ -51,7 +51,7 @@ void updateDisplay()
         display.println("IP: No WiFi");
     }
 
-    // door status
+    // door status (update with icon maybe?)
     display.setCursor(0, 20);
     display.print("Status: ");
     display.println(currentDoorState);
@@ -62,7 +62,7 @@ void updateDisplay()
     display.print(lastOpenDuration);
     display.println("s");
 
-    // showing time
+    // showing time (bug here)
     display.setCursor(0, 40);
     display.print("Time: ");
     display.println(getTime());
