@@ -7,6 +7,7 @@
 #include "config.h"
 #include "timeutils.h"
 #include "webui.h"
+#include "icons.h"
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -48,7 +49,9 @@ void updateDisplay()
     }
     else
     {
+        wifiFail();
         display.println("IP: No WiFi");
+        delay(2000);
     }
 
     // door status (update with icon maybe?)

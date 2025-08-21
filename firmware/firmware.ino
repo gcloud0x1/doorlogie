@@ -5,6 +5,7 @@
 #include "webui.h"
 #include "display.h"
 #include "neopixel.h"
+#include "icons.h"
 
 volatile unsigned long doorOpenTime = 0;
 volatile unsigned long lastDuration = 0;
@@ -36,6 +37,13 @@ void setup()
     while (WiFi.status() != WL_CONNECTED && millis() - wifiStart < WIFI_TIMEOUT)
     {
         pulseColor(COLOR_WIFI_CONN);
+            // 1bits
+            for (int i = 0; i < FRAME_COUNT; i++) {
+                wifiSearching();
+                delay(FRAME_DELAY);
+
+                if (WiFi.status() == WL_CONNECTED) break;
+            }
         Serial.print(".");
     }
 
@@ -43,7 +51,10 @@ void setup()
     {
         setStatusColor(COLOR_WIFI_OK);
         Serial.println("\nWiFi connected! IP: " + WiFi.localIP().toString());
-
+        
+        wifiSuccess();
+        delay(2000);
+        
         setStatusColor(COLOR_TIME_SYNC);
         setupTime();
         if (timeSynced)
@@ -59,6 +70,8 @@ void setup()
     else
     {
         setStatusColor(COLOR_ERROR);
+        wifiFail();
+        delay(2000);
         Serial.println("\nWiFi connection failed");
         delay(2000);
     }
