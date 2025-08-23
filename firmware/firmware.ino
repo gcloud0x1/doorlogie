@@ -34,16 +34,24 @@ void setup()
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     Serial.print("Connecting to WiFi");
     unsigned long wifiStart = millis();
+
+    const int WIFI_SEARCH_FRAMES = 3000 / 32;
+
     while (WiFi.status() != WL_CONNECTED && millis() - wifiStart < WIFI_TIMEOUT)
     {
         pulseColor(COLOR_WIFI_CONN);
-            // 1bits
-            for (int i = 0; i < FRAME_COUNT; i++) {
-                wifiSearching();
-                delay(FRAME_DELAY);
 
-                if (WiFi.status() == WL_CONNECTED) break;
+        for (int i = 0; i < WIFI_SEARCH_FRAMES; i++)
+        {
+            wifiSearching();
+            delay(32);
+
+            if (WiFi.status() == WL_CONNECTED)
+            {
+                break;
             }
+        }
+
         Serial.print(".");
     }
 
@@ -51,27 +59,42 @@ void setup()
     {
         setStatusColor(COLOR_WIFI_OK);
         Serial.println("\nWiFi connected! IP: " + WiFi.localIP().toString());
-        
+
         wifiSuccess();
         delay(2000);
-        
+
         setStatusColor(COLOR_TIME_SYNC);
+        
+        unsigned long timeSyncStart = millis();
+        while (millis() - timeSyncStart < 3000)
+        {
+            timeSync();
+            delay(32);
+        }
+
         setupTime();
+
         if (timeSynced)
         {
             setStatusColor(COLOR_WIFI_OK);
+            timeSuccess();
+            delay(2000);
         }
         else
         {
             setStatusColor(COLOR_TIME_FAIL);
+            delay(2000);
+            timeFail();
             delay(2000);
         }
     }
     else
     {
         setStatusColor(COLOR_ERROR);
+        
         wifiFail();
         delay(2000);
+
         Serial.println("\nWiFi connection failed");
         delay(2000);
     }
@@ -81,6 +104,7 @@ void setup()
     {
         setStatusColor(COLOR_SD_FAIL);
         Serial.println("SD card initialization failed!");
+        sdFail();
         while (1)
         {
             pulseColor(COLOR_SD_FAIL);
@@ -132,8 +156,7 @@ void loop()
                 lastOpenDuration = lastDuration;
                 logEvent("CLOSED", lastDuration);
                 doorOpenTime = 0;
-                Serial.printf("Door CLOSED after %lu seconds at %s\n",
-                              lastDuration, getTime().c_str());
+                Serial.printf("Door CLOSED after %lu seconds at %s\n", lastDuration, getTime().c_str());
             }
 
             String statusUpdate = currentDoorState + "|" + String(lastOpenDuration);
