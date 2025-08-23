@@ -14,6 +14,7 @@
 #define TIME_SYNC_RETRIES 10
 #define TIME_SYNC_DELAY 1000
 #define WIFI_TIMEOUT 20000
+#define TIME_SYNC_TIMEOUT 10000
 #define NEOPIXEL_COUNT 1   // Single NeoPixel (adjust if using strip or ring)
 
 // Files
