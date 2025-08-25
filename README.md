@@ -72,6 +72,16 @@ https://github.com/user-attachments/assets/03f1cce0-c73c-4435-9b33-ffcfcf5aa363
 
 ## How to setup DoorLogie?
 
+### 0. Make your connections right
+
+| Component      | ESP32 Connections                                                                     |
+| -------------- | ------------------------------------------------------------------------------------- |
+| Reed Switch    | GPIO4 → one side<br>GND → other side                                                  |
+| NeoPixel (LED) | Data → GPIO13<br>VCC → 3.3V<br>GND → GND                                              |
+| OLED (SSD1306) | SDA → GPIO21<br>SCL → GPIO22<br>VCC → 3.3V<br>GND → GND                                   |
+| SD Card Module | CS → GPIO5<br>MOSI → GPIO23<br>MISO → GPIO19<br>SCK → GPIO18<br>VCC → 3.3V<br>GND → GND |
+
+
 ### 1. Clone this repo
 ```bash
 git clone https://github.com/gcloud0x1/doorlogie
